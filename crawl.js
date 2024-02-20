@@ -23,7 +23,7 @@ async function crawlPage(baseURL, currentURL, pages) {
 
         if (resp.status > 399) {
             console.log(`error in fetch with status code: ${resp.status} on page: ${currentURL}`)
-            return
+            return pages
         }
 
         const contentType = resp.headers.get('content-type')
@@ -41,7 +41,7 @@ async function crawlPage(baseURL, currentURL, pages) {
         }
 
     } catch(err) {
-        console.log(`error in fetch: ${err.message}, on page ${currentURL}`);
+        console.log(`error in fetch: ${err.message}, on page ${currentURL}`)
     }
 
     return pages
@@ -52,20 +52,22 @@ function getURLsFromHTML(htmlBody, baseURL) {
     const dom = new JSDOM(htmlBody)
     const linkElements = dom.window.document.querySelectorAll('a')
     for (const linkElement of linkElements) {
-        try {
-            if (linkElement.href.slice(0, 1) === '/') {
-                
-                // relative
-                const urlObj = new URL(`${baseURL}${linkElement.href}`)
-                urls.push(urlObj.href)
-            } else {
-                
-                // absolute
-                const urlObj = new URL(linkElement.href)
-                urls.push(urlObj.href)
+        if(linkElement.href !== '') {
+            try {
+                if (linkElement.href.slice(0, 1) === '/') {
+                    
+                    // relative
+                    const urlObj = new URL(`${baseURL}${linkElement.href}`)
+                    urls.push(urlObj.href)
+                } else {
+                    
+                    // absolute
+                    const urlObj = new URL(linkElement.href)
+                    urls.push(urlObj.href)
+                }
+            } catch(err) {
+                console.log(`error fetching URL list: ${err.message}`)
             }
-        } catch(err) {
-            console.log(`error fetching URL list: ${err.message}`)
         }
     }
     return urls
